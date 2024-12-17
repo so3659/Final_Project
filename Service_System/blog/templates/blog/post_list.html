@@ -1,0 +1,41 @@
+{% extends 'blog/base.html' %}
+{% block content %}
+ {% for post in posts %}
+ <div class="post">
+    <div class="date">
+        {{ post.published_date }}
+    </div>
+    <h1><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h1>
+    <p id="post-text-{{ post.pk }}" data-post-id="{{ post.pk }}">{{ post.text|linebreaksbr }}</p>
+    <button class="btn btn-primary" onclick="playText('{{ post.pk }}')">
+        <span class="glyphicon glyphicon-volume-up"></span> 읽어주기
+    </button>
+    {% if post.audio_file %}
+        <audio id="audio-player-{{ post.pk }}" src="{{ post.audio_file.url }}" style="display: none;"></audio>
+    {% endif %}
+    {% if post.image %}
+        <img src="{{ post.image.url }}" class="rounded blog-image-list" alt="{{post.title}}">
+    {% endif %}
+ </div>
+ {% endfor %}
+
+ <script>
+    function playText(postId) {
+        const audioPlayer = document.getElementById('audio-player-' + postId);
+        
+        if (audioPlayer) {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        } else {
+            fetch('/generate-audio/' + postId + '/')
+                .then(response => response.json())
+                .then(data => {
+                    location.reload();
+                });
+        }
+    }
+ </script>
+{% endblock %}
